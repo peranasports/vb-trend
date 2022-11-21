@@ -21,7 +21,7 @@ function MatchReport() {
 
         var dx = 20
         var xmargin = 100
-        var topmargin = 200
+        var topmargin = 100
         const canvas = canvasRef.current
         canvas.width = maxevents * dx + 2 * xmargin //1500 //window.innerWidth
         canvas.height = canvas.width * 1.5 //window.innerHeight * 0.82
@@ -30,10 +30,10 @@ function MatchReport() {
 
         var scale = 1 //order === -1 ? canvas.width / (60 * 20) : 1
 
-        var dy = 15 * scale
-        var ty = 20 * scale
+        var dy = 12 * scale
+        var ty = 18 * scale
         var h = 200 * scale
-        var hh = h + 2 * ty
+        var hh = h + 4 * ty
         var mh = hh / 2
         var ny = h / dy
         var ny2 = ny / 2
@@ -41,18 +41,18 @@ function MatchReport() {
         ctx.fillStyle = 'white'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-        var title = state.teamA.toUpperCase() + ' vs ' + state.teamB.toUpperCase()
-        writeText({ ctx: ctx, text: title, x: xmargin, y: 100, width: 600 }, { textAlign: 'left', fontSize: 20, color: 'black' });
-        writeText({ ctx: ctx, text: state.matchDate, x: xmargin, y: 130, width: 600 }, { textAlign: 'left', fontSize: 20, color: 'black' });
+        var title = state.teamA.toUpperCase() + ' vs ' + state.teamB.toUpperCase() + ' - ' + state.matchDate
+        writeText({ ctx: ctx, text: title, x: xmargin, y: 60, width: 600 }, { textAlign: 'left', fontSize: 20, color: 'black' });
+        // writeText({ ctx: ctx, text: state.matchDate, x: xmargin, y: 130, width: 600 }, { textAlign: 'left', fontSize: 20, color: 'black' });
 
-        var by = 280
+        var by = 300
         var y = topmargin
         for (var ns = 0; ns < state.sets.length; ns++) {
             var set = state.sets[ns]
             if (set.events === undefined) {
                 continue
             }
-            writeText({ ctx: ctx, text: 'SET ' + set.setNumber.toString(), x: xmargin, y: y - 20, width: 600 }, { textAlign: 'left', fontSize: 14, color: 'black' });
+            writeText({ ctx: ctx, text: 'SET ' + set.setNumber.toString(), x: xmargin - 40, y: y, width: 600 }, { textAlign: 'left', fontSize: 14, color: 'black' });
             var events = state.sets[ns].events
             var nstart = 0
             var nend = events.length
@@ -60,6 +60,7 @@ function MatchReport() {
 
             var fontsize = 10 * scale
 
+            mh = hh / 2
             x = xmargin
             var topmax = 0
             var botmin = 0
@@ -78,19 +79,19 @@ function MatchReport() {
                 }
             }
 
-            topmax++;
-            botmin--;
+            topmax += 2;
+            botmin -= 2;
 
             if ((topmax - botmin) * dy > h) {
                 dy = h / (topmax - botmin + 2)
-                mh = (topmax + 1) * dy + ty
+                mh = (topmax + 1) * dy + ty * 2
             }
             else {
                 if (topmax > ny2) {
-                    mh = (topmax + 1) * dy
+                    mh = topmax * dy + ty * 2
                 }
                 else if (Math.abs(botmin) > ny2) {
-                    mh = h - (Math.abs(botmin) + 1) * dy
+                    mh = h - (Math.abs(botmin) * dy) + ty * 2
                 }
             }
 
@@ -213,7 +214,7 @@ function MatchReport() {
                     }}
                     className="flex mr-4 my-4 justify-end rounded-md border border-transparent bg-indigo-600 px-2 py-1 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
                 >
-                    DOWNLOAD IMAGE
+                    DOWNLOAD REPORT
                 </button>
             </div>
             <div ref={ref}>

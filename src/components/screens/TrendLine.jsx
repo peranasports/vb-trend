@@ -23,10 +23,10 @@ function TrendLine({ events, order }) {
         var scale = 1 //order === -1 ? canvas.width / (60 * 20) : 1
 
         var dx = 20 * scale
-        var dy = 15 * scale
-        var ty = 20 * scale
+        var dy = 12 * scale
+        var ty = 18 * scale
         var h = 200 * scale
-        var hh = h + 2 * ty
+        var hh = h + 4 * ty
         var mh = hh / 2
         var ny = h / dy
         var ny2 = ny / 2
@@ -50,19 +50,19 @@ function TrendLine({ events, order }) {
             }
         }
 
-        topmax++;
-        botmin--;
+        topmax += 2;
+        botmin -= 2;
 
         if ((topmax - botmin) * dy > h) {
             dy = h / (topmax - botmin + 2)
-            mh = (topmax + 1) * dy + ty
+            mh = (topmax + 1) * dy + ty * 2
         }
         else {
             if (topmax > ny2) {
-                mh = (topmax + 1) * dy
+                mh = (topmax * dy) + ty * 2
             }
             else if (Math.abs(botmin) > ny2) {
-                mh = h - (Math.abs(botmin) + 1) * dy
+                mh = h - (Math.abs(botmin) * dy) + ty * 2
             }
         }
 

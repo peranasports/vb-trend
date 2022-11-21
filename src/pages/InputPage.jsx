@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import InputScreen from '../components/screens/InputScreen'
+import MatchReport from '../components/screens/MatchReport';
 import TrendLine from '../components/screens/TrendLine'
 
 function InputPage() {
@@ -148,23 +149,23 @@ function InputPage() {
                     }}
                     className="flex mr-4 justify-end rounded-md border border-transparent bg-indigo-600 px-2 py-1 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
                 >
-                    RANDOM
+                    RANDOM SCORING
                 </button>
 
             </div>
 
             <InputScreen team={0} teamname={matchData.teamA} eventAdded={(ev) => addEvent(0, ev)} />
             <div className="carousel w-screen overflow-y-hidden">
-                <div className="carousel-item w-80 h-56 my-2 bg-blue-100">
+                <div className="carousel-item w-80 h-64 my-2 bg-blue-100">
                     <TrendLine events={events} order={0} />
                 </div>
-                <div className="carousel-item w-80 h-56 my-2 bg-blue-100">
+                <div className="carousel-item w-80 h-64 my-2 bg-blue-100">
                     <TrendLine events={events} order={1} />
                 </div>
-                <div className="carousel-item w-80 h-56 my-2 bg-blue-100">
+                <div className="carousel-item w-80 h-64 my-2 bg-blue-100">
                     <TrendLine events={events} order={2} />
                 </div>
-                <div className="carousel-item w-80 h-56 my-2 bg-blue-100">
+                <div className="carousel-item w-80 h-64 my-2 bg-blue-100">
                     <TrendLine events={events} order={3} />
                 </div>
             </div>

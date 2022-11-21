@@ -35,9 +35,19 @@ function Home() {
     e.preventDefault()
   }
 
-  const doInput = () =>
-  {
-    navigate('/inputpage',{state:matchData})
+  const doInput = () => {
+    var md = {
+      teamA: 'Home Team',
+      teamB: 'Away Team',
+      matchDate: new Date(),
+      currentSet: 1,
+      sets: [[], [], [], [], [], [], [], [], [], []]
+    }
+    var evs = []
+    localStorage.setItem('savedMatchData', JSON.stringify(md))
+    localStorage.setItem('savedEvents', JSON.stringify(evs))
+
+    navigate('/inputpage', { state: matchData })
   }
 
   return (

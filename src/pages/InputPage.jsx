@@ -20,6 +20,14 @@ function InputPage() {
         forceUpdate(n => !n)
     }
 
+    const addPlayer = (team, pn) => {
+        var evx = events
+        var evo = evx[events.length - 1]
+        evo.player = pn
+        localStorage.setItem('savedEvents', JSON.stringify(evx))
+        forceUpdate(n => !n)
+    }
+
     function saveMatchData() {
         var setData = { setNumber: matchData.currentSet, events: events }
         matchData.sets[matchData.currentSet - 1] = setData
@@ -154,7 +162,7 @@ function InputPage() {
 
             </div>
 
-            <InputScreen team={0} teamname={matchData.teamA} eventAdded={(ev) => addEvent(0, ev)} />
+            <InputScreen team={0} teamData={matchData} eventAdded={(ev) => addEvent(0, ev)} playerAdded={(pn) => addPlayer(0, pn)} />
             <div className="carousel w-screen overflow-y-hidden">
                 <div className="carousel-item w-80 h-64 my-2 bg-blue-100">
                     <TrendLine events={events} order={0} />
@@ -169,7 +177,7 @@ function InputPage() {
                     <TrendLine events={events} order={3} />
                 </div>
             </div>
-            <InputScreen team={1} teamname={matchData.teamB} eventAdded={(ev) => addEvent(1, ev)} />
+            <InputScreen team={1} teamData={matchData} eventAdded={(ev) => addEvent(1, ev)} playerAdded={(pn) => addPlayer(0, pn)}/>
         </div>
     )
 }

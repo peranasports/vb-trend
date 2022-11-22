@@ -6,11 +6,7 @@ function TrendLine({ events, order }) {
     const ref = useRef(null)
 
     const draw = ctx => {
-
-        var nstart = order === -1 ? 0 : order * 16
-        var nend = order === -1 ? events.length : nstart + 16
-        var total = order === -1 ? nend - nstart : 16
-
+        var runs = []
         var xmargin = 0
         var topmargin = 40
         const canvas = canvasRef.current
@@ -33,15 +29,46 @@ function TrendLine({ events, order }) {
 
         var fontsize = 10 * scale
 
+        var nevents = 0
         var topmax = 0
         var botmin = 0
         var pts = 0
+        var teamruns = -1
+        var oppruns = -1
+        var goodruns = 4
         for (var ne = 0; ne < events.length; ne++) {
             var evo = events[ne]
+            if (evo.event === 'T.O.' || evo.event === 'TO')
+            {
+                continue
+            }
+            nevents++
             if (evo.team === 0) {
+                if (teamruns === -1)
+                {
+                    teamruns = 0
+                    if (oppruns >= goodruns)
+                    {
+                        var run = { team:1, runs:oppruns, start:nevents - oppruns - 1}
+                        runs.push(run)
+                    }
+                }
+                teamruns++
+                oppruns = -1
                 pts++
             }
             else {
+                if (oppruns === -1)
+                {
+                    oppruns = 0
+                    if (teamruns >= goodruns)
+                    {
+                        var run = { team:0, runs:teamruns, start:nevents - teamruns - 1}
+                        runs.push(run)
+                    }
+                }
+                oppruns++
+                teamruns = -1
                 pts--
             }
             topmax = pts > topmax ? pts : topmax
@@ -49,6 +76,18 @@ function TrendLine({ events, order }) {
                 botmin = pts < botmin ? pts : botmin
             }
         }
+
+        if (oppruns >= goodruns)
+        {
+            var run = { team:1, runs:oppruns, start:nevents - oppruns}
+            runs.push(run)
+        }
+        else if (teamruns >= goodruns)
+        {
+            var run = { team:0, runs:teamruns, start:nevents - teamruns}
+            runs.push(run)
+        }
+
 
         topmax += 2;
         botmin -= 2;
@@ -65,6 +104,10 @@ function TrendLine({ events, order }) {
                 mh = h - (Math.abs(botmin) * dy) + ty * 2
             }
         }
+
+        var nstart = order === -1 ? 0 : order * 16
+        var nend = order === -1 ? nevents : nstart + 16
+        var total = order === -1 ? nend - nstart : 16
 
         var ww = total * dx
         ctx.fillStyle = '#ffffff';
@@ -114,29 +157,68 @@ function TrendLine({ events, order }) {
         var lastyy = mh
         var hsc = 0
         var asc = 0
+        nevents = 0
         for (var ne = 0; ne < events.length; ne++) {
             var evo = events[ne]
-            hsc += evo.team === 0 ? 1 : 0
-            asc += evo.team === 1 ? 1 : 0
-            yy += evo.team === 0 ? -dy : dy
-            if (ne >= nstart && ne < nend) {
-                ctx.beginPath()
-                ctx.moveTo(x, lastyy)
-                ctx.lineTo(x, yy)
-                ctx.lineTo(x + dx, yy)
-                // ctx.closePath()
-                ctx.strokeStyle = '#7f8c8d'
-                ctx.stroke()
-                var kk = evo.team === 0 ? -fontsize - 2 : 2
-                var col = evo.team === 0 ? '#16a085' : '#ff0000'
-                writeTextCentre({ ctx: ctx, text: evo.event, x: x, y: yy + kk, width: dx }, { textAlign: 'left', fontSize: fontsize, color: col });
-
-                writeTextCentre({ ctx: ctx, text: hsc.toString(), x: x, y: 4, width: dx }, { textAlign: 'left', fontSize: fontsize, color: '#7f8c8d' });
-                writeTextCentre({ ctx: ctx, text: asc.toString(), x: x, y: hh - ty + 4, width: dx }, { textAlign: 'left', fontSize: fontsize, color: '#7f8c8d' });
-                x += dx
+            var col = evo.team === 0 ? '#16a085' : '#ff0000'
+            if (evo.event === 'T.O.' || evo.event === 'TO') {
+                if (nevents >= nstart && nevents < nend) {
+                    var tx = x
+                    var tox = dx / 3
+                    var toy = evo.team === 0 ? ty : hh - ty
+                    var toyy = evo.team === 0 ? tox : -tox
+                    ctx.beginPath()
+                    ctx.moveTo(tx - tox, toy)
+                    ctx.lineTo(tx + tox, toy)
+                    ctx.lineTo(tx, toy + toyy)
+                    ctx.lineTo(tx - tox, toy)
+                    ctx.closePath()
+                    ctx.fillStyle = col
+                    ctx.fill()
+                }
             }
-            lastyy = yy
+            else
+            {
+                hsc += evo.team === 0 ? 1 : 0
+                asc += evo.team === 1 ? 1 : 0
+                yy += evo.team === 0 ? -dy : dy
+                if (nevents >= nstart && nevents < nend) {
+                    ctx.beginPath()
+                    ctx.moveTo(x, lastyy)
+                    ctx.lineTo(x, yy)
+                    ctx.lineTo(x + dx, yy)
+                    // ctx.closePath()
+                    ctx.strokeStyle = '#7f8c8d'
+                    ctx.stroke()
+                    var kk = evo.team === 0 ? -fontsize - 2 : 2
+                    writeTextCentre({ ctx: ctx, text: evo.event, x: x, y: yy + kk, width: dx }, { textAlign: 'left', fontSize: fontsize, color: col });
+                    if (evo.player !== undefined)
+                    {
+                        var pk = evo.team === 0 ? 2 : -fontsize - 2
+                        writeTextCentre({ ctx: ctx, text: evo.player, x: x, y: yy + pk, width: dx }, { textAlign: 'left', fontSize: fontsize, color: col });
+                    }
+                    writeTextCentre({ ctx: ctx, text: hsc.toString(), x: x, y: 4, width: dx }, { textAlign: 'left', fontSize: fontsize, color: '#7f8c8d' });
+                    writeTextCentre({ ctx: ctx, text: asc.toString(), x: x, y: hh - ty + 4, width: dx }, { textAlign: 'left', fontSize: fontsize, color: '#7f8c8d' });
+                    x += dx
+                }
+                nevents++
+                lastyy = yy    
+            }
         }
+
+        for (var nr=0; nr<runs.length; nr++)
+        {
+            var run = runs[nr]
+            var ry = run.team === 0 ? ty + ty - ty / 4 : hh - ty * 2;
+            var rty = run.team === 0 ? ty + 3 : hh - ty * 2 + 5;
+            var col = run.team === 0 ? '#16a085' : '#ff0000'
+            var rx = dx * (run.start - nstart)
+            ctx.fillStyle = col
+            var rw = run.runs * dx
+            ctx.fillRect(rx, ry, rw, ty / 8)
+            writeTextCentre({ ctx: ctx, text: run.runs.toString(), x: rx, y: rty, width: rw }, { textAlign: 'left', fontSize: fontsize, color: 'black' });
+        }
+
         x = xmargin
         if (order === -1)
         {

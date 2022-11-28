@@ -70,7 +70,7 @@ export function tryParseDateFromString(dateStringCandidateValue, format = "ymd")
 
 export function writeText(info, style = {}) {
     const { ctx, text, x, y, width } = info;
-    const { fontSize = 20, fontFamily = 'segoe', color = 'black', textAlign = 'left', textBaseline = 'top' } = style;
+    const { fontSize = 20, fontFamily = 'Arial', color = 'black', textAlign = 'left', textBaseline = 'top' } = style;
 
     ctx.beginPath();
     ctx.font = 'condensed ' + fontSize + 'px ' + fontFamily;

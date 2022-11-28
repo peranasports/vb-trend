@@ -20,7 +20,7 @@ function MatchReport() {
 
         var dx = 20
         var xmargin = 100
-        var topmargin = 100
+        var topmargin = 120
         const canvas = canvasRef.current
         canvas.width = maxevents * dx + 2 * xmargin //1500 //window.innerWidth
         canvas.height = canvas.width * 1.5 //window.innerHeight * 0.82
@@ -44,7 +44,7 @@ function MatchReport() {
         writeText({ ctx: ctx, text: title, x: xmargin, y: 60, width: 600 }, { textAlign: 'left', fontSize: 20, color: 'black' });
         // writeText({ ctx: ctx, text: state.matchDate, x: xmargin, y: 130, width: 600 }, { textAlign: 'left', fontSize: 20, color: 'black' });
 
-        var by = 300
+        var by = 320
         var y = topmargin
         for (var ns = 0; ns < state.sets.length; ns++) {
             var runs = []
@@ -52,8 +52,11 @@ function MatchReport() {
             if (set.events === undefined) {
                 continue
             }
-            writeText({ ctx: ctx, text: 'SET ' + set.setNumber.toString(), x: xmargin - 40, y: y, width: 600 }, { textAlign: 'left', fontSize: 14, color: 'black' });
+            writeText({ ctx: ctx, text: 'SET ' + set.setNumber.toString(), x: xmargin - 44, y: y, width: 600 }, { textAlign: 'left', fontSize: 14, color: 'black' });
             var events = state.sets[ns].events
+            var server = state.sets[ns].teamAServing ? 0 : 1
+            var setterA = state.sets[ns].teamASetterPos === 'NA' ? 0 : Number(state.sets[ns].teamASetterPos)
+            var setterB = state.sets[ns].teamBSetterPos === 'NA' ? 0 : Number(state.sets[ns].teamBSetterPos)
             var nstart = 0
             var nend = events.length
             var total = nend - nstart
@@ -65,24 +68,30 @@ function MatchReport() {
             var topmax = 0
             var botmin = 0
             var pts = 0
+            var lastsetterA = 0
+            var lastsetterB = 0
             var nevents = 0
             var teamruns = -1
             var oppruns = -1
-            var goodruns = 4    
+            var goodruns = 4
             for (var ne = 0; ne < events.length; ne++) {
                 var evo = events[ne]
-                if (evo.event === 'T.O.' || evo.event === 'TO')
-                {
+                if (evo.event === 'T.O.' || evo.event === 'TO') {
                     continue
                 }
                 nevents++
                 if (evo.team === 0) {
-                    if (teamruns === -1)
-                    {
+                    if (server === 1) {
+                        setterA--
+                        if (setterA === 0) {
+                            setterA = 6
+                        }
+                        server = 0
+                    }
+                    if (teamruns === -1) {
                         teamruns = 0
-                        if (oppruns >= goodruns)
-                        {
-                            var run = { team:1, runs:oppruns, start:nevents - oppruns - 1}
+                        if (oppruns >= goodruns) {
+                            var run = { team: 1, runs: oppruns, start: nevents - oppruns - 1 }
                             runs.push(run)
                         }
                     }
@@ -91,12 +100,17 @@ function MatchReport() {
                     pts++
                 }
                 else {
-                    if (oppruns === -1)
-                    {
+                    if (server === 0) {
+                        setterB--
+                        if (setterB === 0) {
+                            setterB = 6
+                        }
+                        server = 1
+                    }
+                    if (oppruns === -1) {
                         oppruns = 0
-                        if (teamruns >= goodruns)
-                        {
-                            var run = { team:0, runs:teamruns, start:nevents - teamruns - 1}
+                        if (teamruns >= goodruns) {
+                            var run = { team: 0, runs: teamruns, start: nevents - teamruns - 1 }
                             runs.push(run)
                         }
                     }
@@ -110,17 +124,15 @@ function MatchReport() {
                 }
             }
 
-            if (oppruns >= goodruns)
-            {
-                var run = { team:1, runs:oppruns, start:nevents - oppruns}
+            if (oppruns >= goodruns) {
+                var run = { team: 1, runs: oppruns, start: nevents - oppruns }
                 runs.push(run)
             }
-            else if (teamruns >= goodruns)
-            {
-                var run = { team:0, runs:teamruns, start:nevents - teamruns}
+            else if (teamruns >= goodruns) {
+                var run = { team: 0, runs: teamruns, start: nevents - teamruns }
                 runs.push(run)
             }
-    
+
             topmax += 2;
             botmin -= 2;
 
@@ -175,6 +187,11 @@ function MatchReport() {
             ctx.strokeStyle = '#bdc3c7'
             ctx.stroke()
 
+            var sna = set.teamAServing ? state.teamA + ' *' : state.teamA
+            writeText({ ctx: ctx, text: sna.toUpperCase(), x: xmargin, y: y - fontsize - 4 }, { textAlign: 'left', fontSize: fontsize, color: 'black' });
+            var snb= set.teamBServing ? state.teamB + ' *' : state.teamB
+            writeText({ ctx: ctx, text: snb.toUpperCase(), x: xmargin, y: y + hh + 4}, { textAlign: 'left', fontSize: fontsize, color: 'black' });
+
             if (events.length < nstart) {
                 return
             }
@@ -203,8 +220,7 @@ function MatchReport() {
                         ctx.fill()
                     }
                 }
-                else
-                {
+                else {
                     hsc += evo.team === 0 ? 1 : 0
                     asc += evo.team === 1 ? 1 : 0
                     yy += evo.team === 0 ? -dy : dy
@@ -218,14 +234,48 @@ function MatchReport() {
                         ctx.stroke()
                         var kk = evo.team === 0 ? -fontsize - 2 : 2
                         writeTextCentre({ ctx: ctx, text: evo.event, x: x, y: yy + kk, width: dx }, { textAlign: 'left', fontSize: fontsize, color: col });
-                        if (evo.player !== undefined)
-                        {
+                        if (evo.player !== undefined) {
                             var pk = evo.team === 0 ? 2 : -fontsize - 2
                             writeTextCentre({ ctx: ctx, text: evo.player, x: x, y: yy + pk, width: dx }, { textAlign: 'left', fontSize: fontsize, color: col });
                         }
-    
+
                         writeTextCentre({ ctx: ctx, text: hsc.toString(), x: x, y: y + 4, width: dx }, { textAlign: 'left', fontSize: fontsize, color: '#7f8c8d' });
                         writeTextCentre({ ctx: ctx, text: asc.toString(), x: x, y: y + hh - ty + 4, width: dx }, { textAlign: 'left', fontSize: fontsize, color: '#7f8c8d' });
+
+                        if (state.sets[ns].teamASetterPos !== 'NA') {
+                            if (evo.setterA !== lastsetterA) {
+                                ctx.beginPath()
+                                ctx.moveTo(x, y + ty)
+                                ctx.lineTo(x, y + ty * 2)
+                                ctx.strokeStyle = '#7f8c8d'
+                                ctx.stroke()
+                                writeTextCentre({ ctx: ctx, text: "S" + evo.setterA.toString(), x: x, y: y + 4 + ty, width: dx }, { textAlign: 'left', fontSize: fontsize, color: '#7f8c8d' });
+                                lastsetterA = evo.setterA
+                            }
+                            ctx.beginPath()
+                            ctx.moveTo(x, y + ty * 2)
+                            ctx.lineTo(x + dx, y + ty * 2)
+                            ctx.strokeStyle = '#7f8c8d'
+                            ctx.stroke()
+
+                        }
+                        if (state.sets[ns].teamASetterPos !== 'NA') {
+                            if (evo.setterB !== lastsetterB) {
+                                ctx.beginPath()
+                                ctx.moveTo(x, y + hh - ty * 2)
+                                ctx.lineTo(x, y + hh - ty)
+                                ctx.strokeStyle = '#7f8c8d'
+                                ctx.stroke()
+                                writeTextCentre({ ctx: ctx, text: "S" + evo.setterB.toString(), x: x, y: y + hh - ty * 2 + 4, width: dx }, { textAlign: 'left', fontSize: fontsize, color: '#7f8c8d' });
+                                lastsetterB = evo.setterB
+                            }
+                            ctx.beginPath()
+                            ctx.moveTo(x, y + hh - ty * 2)
+                            ctx.lineTo(x + dx, y + hh - ty * 2)
+                            ctx.strokeStyle = '#7f8c8d'
+                            ctx.stroke()
+                        }
+
                         x += dx
                     }
                 }
@@ -247,17 +297,24 @@ function MatchReport() {
             for (var nr=0; nr<runs.length; nr++)
             {
                 var run = runs[nr]
-                var ry = run.team === 0 ? y + ty + ty - ty / 4 : y + hh - ty * 2;
-                var rty = run.team === 0 ? y + ty + 3 : y + hh - ty * 2 + 5;
+                var ry = run.team === 0 ? y + ty * 2 + ty / 4 : y + hh - ty * 2 - ty + 2;
+                var rty = run.team === 0 ? ry + 1 : ry;
                 var col = run.team === 0 ? '#16a085' : '#ff0000'
                 var rx = x + dx * (run.start - nstart)
-                ctx.fillStyle = col
                 var rw = run.runs * dx
-                ctx.fillRect(rx, ry, rw, ty / 8)
+                ctx.fillStyle = col
+                ctx.fillRect(rx, ry + ty / 4, rw, 2)
+                ctx.beginPath()
+                ctx.arc(rx + rw / 2, ry + dx / 4, dx / 2, 0, 2 * Math.PI, false);
+                ctx.closePath()
+                ctx.fillStyle = 'white'
+                ctx.fill()
+                ctx.strokeStyle = col
+                ctx.stroke()
                 writeTextCentre({ ctx: ctx, text: run.runs.toString(), x: rx, y: rty, width: rw }, { textAlign: 'left', fontSize: fontsize, color: 'black' });
             }
     
-            y += by        
+            y += by
         }
     }
 

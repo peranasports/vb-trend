@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { writeTextCentre } from '../../utils/Utils'
 
-function TrendLine({ events, order }) {
+function TrendLine({ matchData, events, order }) {
     const canvasRef = useRef(null)
     const ref = useRef(null)
 
@@ -29,21 +29,36 @@ function TrendLine({ events, order }) {
 
         var fontsize = 10 * scale
 
+        var server = matchData.sets[matchData.currentSet - 1].teamAServing ? 0 : 1        
+        var setterA = matchData.sets[matchData.currentSet - 1].teamASetterPos === 'NA' ? 0 : Number(matchData.sets[matchData.currentSet - 1].teamASetterPos)
+        var setterB = matchData.sets[matchData.currentSet - 1].teamBSetterPos === 'NA' ? 0 : Number(matchData.sets[matchData.currentSet - 1].teamBSetterPos)
         var nevents = 0
         var topmax = 0
         var botmin = 0
         var pts = 0
         var teamruns = -1
         var oppruns = -1
-        var goodruns = 4
+        var goodruns = 4        
         for (var ne = 0; ne < events.length; ne++) {
             var evo = events[ne]
+            evo.setterA = setterA
+            evo.setterB = setterB
             if (evo.event === 'T.O.' || evo.event === 'TO')
             {
                 continue
             }
             nevents++
             if (evo.team === 0) {
+                if (server === 1)
+                {
+                    setterA--
+                    if (setterA === 0)
+                    {
+                        setterA = 6
+                    }
+                    server = 0
+                }
+
                 if (teamruns === -1)
                 {
                     teamruns = 0
@@ -58,6 +73,15 @@ function TrendLine({ events, order }) {
                 pts++
             }
             else {
+                if (server === 0)
+                {
+                    setterB--
+                    if (setterB === 0)
+                    {
+                        setterB = 6
+                    }
+                    server = 1
+                }
                 if (oppruns === -1)
                 {
                     oppruns = 0
@@ -157,6 +181,8 @@ function TrendLine({ events, order }) {
         var lastyy = mh
         var hsc = 0
         var asc = 0
+        var lastsetterA = 0
+        var lastsetterB = 0
         nevents = 0
         for (var ne = 0; ne < events.length; ne++) {
             var evo = events[ne]
@@ -199,6 +225,45 @@ function TrendLine({ events, order }) {
                     }
                     writeTextCentre({ ctx: ctx, text: hsc.toString(), x: x, y: 4, width: dx }, { textAlign: 'left', fontSize: fontsize, color: '#7f8c8d' });
                     writeTextCentre({ ctx: ctx, text: asc.toString(), x: x, y: hh - ty + 4, width: dx }, { textAlign: 'left', fontSize: fontsize, color: '#7f8c8d' });
+
+                    if (matchData.sets[matchData.currentSet - 1].teamASetterPos !== 'NA')
+                    {
+                        if (evo.setterA !== lastsetterA)
+                        {
+                            ctx.beginPath()
+                            ctx.moveTo(x, ty)
+                            ctx.lineTo(x, ty * 2)
+                            ctx.strokeStyle = '#7f8c8d'
+                            ctx.stroke()                
+                            writeTextCentre({ ctx: ctx, text: "S" + evo.setterA.toString(), x: x, y: 4 + ty, width: dx }, { textAlign: 'left', fontSize: fontsize, color: '#7f8c8d' });
+                            lastsetterA = evo.setterA
+                        }
+                        ctx.beginPath()
+                        ctx.moveTo(x, ty * 2)
+                        ctx.lineTo(x + dx, ty * 2)
+                        ctx.strokeStyle = '#7f8c8d'
+                        ctx.stroke()                
+
+                    }
+                    if (matchData.sets[matchData.currentSet - 1].teamASetterPos !== 'NA')
+                    {
+                        if (evo.setterB !== lastsetterB)
+                        {
+                            ctx.beginPath()
+                            ctx.moveTo(x, hh - ty * 2)
+                            ctx.lineTo(x, hh - ty)
+                            ctx.strokeStyle = '#7f8c8d'
+                            ctx.stroke()                
+                            writeTextCentre({ ctx: ctx, text: "S" + evo.setterB.toString(), x: x, y: hh - ty * 2 + 4, width: dx }, { textAlign: 'left', fontSize: fontsize, color: '#7f8c8d' });
+                            lastsetterB = evo.setterB
+                        }
+                        ctx.beginPath()
+                        ctx.moveTo(x, hh - ty * 2)
+                        ctx.lineTo(x + dx, hh - ty * 2)
+                        ctx.strokeStyle = '#7f8c8d'
+                        ctx.stroke()                
+                }
+
                     x += dx
                 }
                 nevents++
@@ -209,13 +274,20 @@ function TrendLine({ events, order }) {
         for (var nr=0; nr<runs.length; nr++)
         {
             var run = runs[nr]
-            var ry = run.team === 0 ? ty + ty - ty / 4 : hh - ty * 2;
-            var rty = run.team === 0 ? ty + 3 : hh - ty * 2 + 5;
+            var ry = run.team === 0 ? ty * 2 + ty / 4 : hh - ty * 2 - ty + 2;
+            var rty = run.team === 0 ? ry + 1 : ry;
             var col = run.team === 0 ? '#16a085' : '#ff0000'
             var rx = dx * (run.start - nstart)
-            ctx.fillStyle = col
             var rw = run.runs * dx
-            ctx.fillRect(rx, ry, rw, ty / 8)
+            ctx.fillStyle = col
+            ctx.fillRect(rx, ry + ty / 4, rw, 2)
+            ctx.beginPath()
+            ctx.arc(rx + rw / 2, ry + dx / 4, dx / 2, 0, 2 * Math.PI, false);
+            ctx.closePath()
+            ctx.fillStyle = 'white'
+            ctx.fill()
+            ctx.strokeStyle = col
+            ctx.stroke()
             writeTextCentre({ ctx: ctx, text: run.runs.toString(), x: rx, y: rty, width: rw }, { textAlign: 'left', fontSize: fontsize, color: 'black' });
         }
 

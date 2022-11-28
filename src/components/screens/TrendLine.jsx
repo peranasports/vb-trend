@@ -245,7 +245,7 @@ function TrendLine({ matchData, events, order }) {
                         ctx.stroke()                
 
                     }
-                    if (matchData.sets[matchData.currentSet - 1].teamASetterPos !== 'NA')
+                    if (matchData.sets[matchData.currentSet - 1].teamBSetterPos !== 'NA')
                     {
                         if (evo.setterB !== lastsetterB)
                         {

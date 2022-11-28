@@ -39,8 +39,8 @@ function InputPage() {
     function saveMatchData() {
         var setData = matchData.sets[matchData.currentSet - 1] // { setNumber: matchData.currentSet, events: events }
         setData.setNumber = matchData.currentSet
-        setData.teamAServing = teamAServing
-        setData.teamBServing = teamBServing
+        // setData.teamAServing = teamAServing
+        // setData.teamBServing = teamBServing
         setData.events = events
         matchData.sets[matchData.currentSet - 1] = setData
         localStorage.setItem('savedMatchData', JSON.stringify(matchData))

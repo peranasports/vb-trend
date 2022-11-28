@@ -94,13 +94,24 @@ function Home() {
       tbpls.push(val)
     }
     md.teamBPlayers = tbpls
-    for (var ns=0; ns<10; ns++)
+    if (refTeamAServing.current.checked || refTeamBServing.current.checked)
     {
-      md.sets[ns].teamAServing = ns % 2 == 0 ? refTeamAServing.current.checked : !refTeamAServing.current.checked
-      md.sets[ns].teamBServing =  ns % 2 == 0 ? refTeamBServing.current.checked : !refTeamBServing.current.checked
-      md.sets[ns].teamASetterPos = teamASetterPos
-      md.sets[ns].teamBSetterPos = teamBSetterPos
+      for (var ns=0; ns<10; ns++)
+      {
+        md.sets[ns].teamAServing = ns % 2 == 0 ? refTeamAServing.current.checked : !refTeamAServing.current.checked
+        md.sets[ns].teamBServing =  ns % 2 == 0 ? refTeamBServing.current.checked : !refTeamBServing.current.checked
+        md.sets[ns].teamASetterPos = teamASetterPos
+        md.sets[ns].teamBSetterPos = teamBSetterPos
+      }
     }
+    else
+    {
+      for (var ns=0; ns<10; ns++)
+      {
+        md.sets[ns].teamASetterPos = 'NA'
+        md.sets[ns].teamBSetterPos = 'NA'
+      }
+  }
     md.teamAServing = refTeamAServing.current.checked
     md.teamBServing = refTeamBServing.current.checked
     setMatchData(md)
